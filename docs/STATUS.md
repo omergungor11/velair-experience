@@ -11,7 +11,8 @@ Tarih: 12 Eylül 2026.
 - Beş uzman rol + ana integrator düzeni; `.codex` paralellik sınırı 3 alt agent.
 - Paket kurulumu tamamlandı; `npm run check` geçti. Son Next.js root ayarı sonrası production build tekrar geçti.
 - GitHub private repository oluşturuldu: https://github.com/omergungor11/velair-experience ; `origin` bu adrese bağlı, ana dal `main`.
-- Bu kayıt ilk commit hazırlanırken alınmıştır. Teslim commit kimliği ve uzak eşleşme, Git geçmişi ile son teslim mesajından okunabilir.
+- İlk commit [`4b93f76`](https://github.com/omergungor11/velair-experience/commit/4b93f76c0188a87dcb231d7ed752511e404fb79d) main'e push edildi; yerel HEAD ve uzak main SHA eşleşmesi doğrulandı.
+- [GitHub Quality CI](https://github.com/omergungor11/velair-experience/actions/runs/34690404955) ilk commit üzerinde başarılı: temiz `npm ci` ve `npm run check`, job süresi 47s. Bu sonuç kaydı yalnızca belgeleri değiştiren takip commit'idir.
 
 ## Doğrulama kanıtı
 
@@ -20,6 +21,7 @@ Tarih: 12 Eylül 2026.
 | ESLint + TypeScript | Geçti |
 | Bölüm sürekliliği ve jump/reverse sınırları | 2/2 test geçti |
 | Production build | Geçti; `/` statik prerender edildi |
+| GitHub CI / Linux temiz kurulum | Geçti, ilk commit `4b93f76` |
 | npm kurulum audit'i | 0 bilinen vulnerability raporlandı |
 | Agent TOML dosyaları | Config + 5 rol parse edildi; gerekli alanlar ve benzersiz adlar doğrulandı |
 | Yerel belge bağlantıları | Kırık bağlantı bulunmadı |
