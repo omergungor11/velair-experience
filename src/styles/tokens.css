@@ -1,0 +1,13 @@
+:root {
+  --color-sky: #e4edf4;
+  --color-paper: #f7f8fa;
+  --color-ink: #101d2b;
+  --color-muted: #485a6b;
+  --color-accent: #245c8a;
+  --color-line: #101d2b30;
+  --gutter: clamp(1.25rem, 4vw, 5rem);
+  --layer-scene: 0;
+  --layer-content: 10;
+  --layer-nav: 30;
+  --layer-dialog: 40;
+}
