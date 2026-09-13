@@ -1,70 +1,87 @@
-# 3D ve görsel asset planı
+# 3D ve görsel asset kaydı
 
-Durum: üretim/edinim bekliyor. Bu commit'te model, bulut dokusu veya lisanslı final görsel bulunmuyor.
+Güncelleme: 13 Eylül 2026 · Durum: çalışan demo varlıkları üretildi. Bu belge mevcut dosyaları ve ölçümleri, gelecekteki final/lite varlık hedeflerinden ayırır.
 
-## Uçak model briefi
+## Demoda kullanılan kaynaklar
 
-Logo taşımayan çağdaş bir business jet. Uzun ve ince gövde, geriye süpürülmüş kanatlar, arka motorlar ve dengeli kuyruk oranı. İnci beyazı gövde, koyu kokpit camı, çok sınırlı metal detay. Gerçek bir üreticinin birebir doğruluk iddiası yoktur.
+| Varlık | Gerçek kaynak / üretim | Hak ve dağıtım kaydı |
+| --- | --- | --- |
+| Jet dış gövde + kabin | [jet-geometry.ts](../src/lib/scene/jet-geometry.ts) ve [JetModel.tsx](../src/components/scene/JetModel.tsx); VELAIR için Codex ile yazılmış özgün parametrik geometri ve materyaller | Proje kaynak kodundan üretilir; üçüncü taraf jet modeli, üretici CAD dosyası veya satın alınmış model kullanılmaz. Dağıtılan `.glb` dosyası yoktur. |
+| Ortam yansıması | [FlightCanvas.tsx](../src/components/scene/FlightCanvas.tsx), Three.js `0.186.0` içindeki `RoomEnvironment` ve `PMREMGenerator` | Three.js MIT lisanslıdır; telif bildirimi `Copyright © 2010–2026 three.js authors`. Lisans paketin `LICENSE` dosyasındadır. Ortam tarayıcıda üretilir; HDR/EXR indirilmez. |
+| Hareketli bulut örtüsü | `FlightCanvas.tsx` içindeki `CloudVeil`: proje için yazılmış noise/fBM fragment shader ve tek düzlem | Proje kaynak kodu; bulut atlası veya harici shader dosyası indirilmez. Scroll geçişini örten katmandır. |
+| Gökyüzü arka planı | `public/images/cloud-atmosphere.png`; OpenAI **imagegen**, **12 Eylül 2026**, bu proje için özgün AI üretimi | AI üretimi görsel; kaynak hizmetin çıktı koşulları geçerlidir. Stok fotoğraf lisansı veya CC lisansı atanmamıştır. |
+| Altı statik jet karesi | `public/images/jet-{hero,cabin,side}-{desktop,mobile}.png`; aynı jet, materyaller, ışıklar ve WebGL renderer üzerinden PNG export | Projenin kendi prosedürel model renderları; ayrı bir uçak görseli veya fotoğrafı kullanılmaz. |
+| Tipografi | Arial/Helvetica ve Georgia/Times New Roman sistem font yığınları | Font binary dağıtılmıyor; `public/fonts/` altında indirilmiş font bulunmuyor. |
 
-Tepeden, yan profilden ve açık kabin görünümünde aynı model kullanılabilir olmalı. Kabin 3 anlatı alanı içerir: lounge, dining, private suite. Bu plan bir uçuş güvenliği ya da sertifikalı yerleşim çizimi değildir.
+Bulut görselinin sanat yönü: yüksek irtifada hacimli beyaz bulutlar, soğuk mavi-gri atmosfer ve tipografi için sakin alan. Arayüz bu görsele CSS renk azaltma ve gökyüzü gradient katmanı uygular; `next/image` responsive servis çıktıları üretir. Arka plan resmi ile WebGL içindeki hareketli bulut örtüsü farklı varlıklardır.
 
-## Zorunlu sahne yapısı
+Jet çağdaş bir business jet konseptidir. Herhangi bir gerçek üreticinin birebir geometrisi, teknik performansı, uçuş güvenliği veya sertifikalı kabin yerleşimi iddia edilmez. Kabindeki lounge, dining ve private suite alanları görsel anlatı için tasarlanmıştır.
+
+## Model yapısı ve ölçülmüş bütçe
+
+Eksenler Y-up, burun -Z; ortak pivot orijindedir. Yerel ölçüm sınırları: X `−7.032…7.032`, Y `−0.804…2.625`, Z `−7.100…7.240`. Kanat açıklığı yaklaşık `14.06`, uzunluk `14.34` model birimidir; birimler metre ölçeğinde tasarlanmıştır.
+
+Ana sahne düğümleri korunur:
 
 ```text
 JetRoot
-  FuselageLower
+  AircraftExterior
+    FuselageLower / Nose / TailCone
+    Wings / WingControlSurfaces / Tail
+    Engines / EngineFans / CockpitGlazing
   FuselageUpper
-  Wings
-  Tail
-  Engines
-  CabinFloor
-  Seats
-  Tables
-  Windows
+    FuselageUpper / Windows
+  CabinInterior
+    CabinFloor / CabinWalls / CabinSill
+    Seats / Tables / DiningSofa / PrivateSuite
 ```
 
-Üst gövde, kabin iç geometrisini açığa çıkaracak ayrı mesh olmalı. Tüm düğümlerin isimleri export sonrası korunmalı. Reveal sırasında görünür iç duvar, döşeme ve gövde kenarları modellenmeli. Tamamen kapalı dış model bu gereksinimi karşılamaz.
+Üst gövde ve 18 oval pencere ayrı gruptadır. `reveal.current` değeri her frame mutlak olarak örneklenir: kabuk `1.9` birim yükselir, `.12… .84` aralığında opacity azalır ve `.995` üzerinde grup gizlenir. Alt gövde, burun ve kuyruk kalır. Kabin duvarları, döşeme, kenar profilleri ve mobilyaları aynı modelin içindedir; ters scroll kabuğu aynı yere geri oturtur. Kabin kapalı durumda render edilmez.
 
-Y-up, burun -Z, metre birimi, ortak merkez pivot. Transform scale `(1,1,1)`; normal yönleri doğru; temiz UV; gereksiz kameralardan/ışıklardan arındırılmış export. Yanlış ölçek sonradan kamera koduna yayılmamalı.
+Geometri sayımı 13 Eylül 2026 tarihinde `createJetGeometries()` çıktıları üzerinden çalıştırılmıştır. Triangle sayıları non-indexed position attribute uzunluğundan, byte değerleri position/normal/UV typed array boyutlarından ölçülmüştür.
 
-## Çıktılar ve bütçe
+| Geometri grubu | Mesh / materyal grubu | Üçgen | Attribute buffer, byte |
+| --- | ---: | ---: | ---: |
+| Sabit dış gövde | 19 | 29.580 | 2.839.680 |
+| Açılan üst kabuk + pencereler | 3 | 16.436 | 1.577.856 |
+| Kabin içi | 25 | 18.796 | 1.804.416 |
+| **Toplam oluşturulan** | **47** | **64.812** | **6.221.952** |
+| Kapalı görünüm | 22 | 46.016 | — |
+| Tam açık görünüm | 44 | 48.376 | — |
 
-| Asset | Planlanan yol örneği | Hedef | Kullanım |
-| --- | --- | --- | --- |
-| Ana jet | `public/models/velair-jet-v1.glb` | ≤ 3 MiB; ≤ 150k görünür triangle | Dış + kabin + yan uçuş |
-| Lite jet | `public/models/velair-jet-lite-v1.glb` | ≤ 1.5 MiB; ≤ 60k triangle | Mobil/düşük GPU |
-| Bulut atlası | `public/textures/cloud-atlas-v1.webp` | ≤ 400 KiB | 2–3 derinlik katmanı |
-| Environment | `public/textures/sky-studio-v1.hdr` | ≤ 500 KiB | Gövde yansıması |
-| Hero fallback | `public/images/jet-top-v1.webp` | ≤ 220 KiB desktop; daha küçük mobil | İlk kare + statik mod |
-| Kabin fallback | `public/images/cabin-top-v1.webp` | ≤ 250 KiB | WebGL alternatifi |
-| Yan profil fallback | `public/images/jet-side-v1.webp` | ≤ 220 KiB | Statik horizon |
-| Fontlar | `public/fonts/` | Toplam ≤ 160 KiB WOFF2 | Son tipografi |
+Toplam attribute boyutu yaklaşık **5,93 MiB**'dır. Bu değer kaynak JS transferi veya toplam GPU/CPU belleği değildir; renderer, materyal, ortam texture ve olası CPU/GPU kopyalarını içermez. Mesh/materyal grubu sayısı da renderer'ın ölçülmüş draw-call sayısı değildir: görünürlük, shader örtüsü ve render pass'leri gerçek sayıyı değiştirebilir. Geçişte kabuk ve kabin birlikte görünürken tüm 47 model grubu devreye girebilir. Gerçek renderer/viewport ölçümleri `STATUS.md` ve QA kayıtlarına aittir.
 
-Bunlar rezervasyon amaçlı dosya adlarıdır; var olmayan dosyaya runtime request atılmaz. GLB içindeki texture transferi iki kez bütçelenmez; çözülmüş GPU boyutu ayrıca ölçülür.
+Entegratörün 13 Eylül 2026 yerel production kontrolünde renderer ayrıca ölçüldü: kapalı hero **46.016 üçgen / 22 draw call**, açık kabin **48.376 üçgen / 44 draw call**. Bunlar bu iki sabit görünümün sonuçlarıdır; geçiş boyunca maksimum GPU belleği veya FPS ölçümü olarak sunulmaz.
 
-## Üretim sırası
+Modelin geometri/materyal üretimi dışında harici model veya yüzey dokusu isteği yoktur. Ahşap damar hissi ince geometri şeritleriyle, deri ve metal ayrımı materyallerle sağlanır. Bu sürümde bağımsız lite geometri bulunmaz.
 
-1. Uygun lisanslı model adayını veya özel üretim yolunu belirle; üst kabuk ve kabin varlığını kontrol et.
-2. Gri blockout ile top-down → cutaway → side pozlarını aynı renderer'da doğrula.
-3. Blender'da mesh bölümleri, pivot, UV ve materyalleri düzenle. Kabin/exterior kesişmelerini gider.
-4. GLB export; gerekirse glTF Transform ile meshopt veya Draco seç. İkisini gereksiz yere yığma; decoder maliyetini ölç.
-5. KTX2/Basis gerekiyorsa loader/decoder yollarını aynı origin'de kur; yalnızca gerçekten kazanç sağlayan dokularda kullan.
-6. Gerçek sahnede test: üst kabuk kapanırken pop, cam/kanat sorting, normal ve materyal parlaklığı.
-7. Lite varyant ve ana modelden aynı kamera/ışıkla fallback karelerini üret.
-8. Final kaynak, lisans, boyut ve node listesini kayıt tablosuna işle.
+## Public dosya sicili
 
-## Kaynak ve hak kaydı
+Aşağıdaki byte, PNG boyutu ve **tam SHA-256** değerleri 13 Eylül 2026 tarihinde mevcut dosyalardan okunmuştur. Yollar `public/images/` altındadır. Altı fallback PNG'si şeffaf jet renderlarıdır; gökyüzü arka planı ayrıca sunulur.
 
-| Asset | Durum | Kaynak URL / üretici | Lisans / dağıtım hakkı | Boyut / hash | İnceleyen |
-| --- | --- | --- | --- | --- | --- |
-| Jet dış + kabin | Bekliyor | — | — | — | — |
-| Bulut atlası | Bekliyor | — | — | — | — |
-| Environment | Bekliyor | — | — | — | — |
-| Fallback kareleri | Modele bağlı | — | — | — | — |
-| Fontlar | Sistem fontu geçici | OS font stack | Font binary dağıtılmıyor | — | — |
+| Dosya | Boyut, px | Byte | SHA-256 |
+| --- | --- | ---: | --- |
+| `cloud-atmosphere.png` | 1672 × 941 | 1.577.763 | `0f498ac4266da1f0c10dcc669a11fdfd388205742ed88ba74da05fb1aace36eb` |
+| `jet-hero-desktop.png` | 1425 × 900 | 138.537 | `1e7a9f90df1dc8ca44c965676bd233fdeb5e6d06b12da28e5a21531a54cf3c36` |
+| `jet-hero-mobile.png` | 375 × 844 | 48.693 | `22b0a487f9963f71d3491595742fd32f213a545730c3b98e4f9e1523402f5e38` |
+| `jet-cabin-desktop.png` | 1425 × 900 | 180.426 | `425004495e8a2429204b3521b4ada45114ddc1420e1e3afe63b7a963c4f91c1d` |
+| `jet-cabin-mobile.png` | 375 × 844 | 64.259 | `1fd70ab0b12eb2d313ef2a431a35be5b0db69009e00d6e3fe36d60cd6cbb9f2e` |
+| `jet-side-desktop.png` | 1440 × 900 | 86.994 | `1daa716a4d8678bf5fa3aa2519dd774f7f793887fb5190f2825849ad8a7e3f18` |
+| `jet-side-mobile.png` | 390 × 844 | 32.792 | `12bd32b38de3b70a6171cd72342952b0afed6f228b5d328fbb7eb42c9ee43eda` |
 
-Modelin browser'a gönderilmesi fiilen dosyanın erişilebilir olmasıdır. Kaynak lisansın bu kullanımı ve repository'de dağıtımı karşılaması gerekir. Satın alınan modelin ham kaynak dosyası ayrıca izin yoksa GitHub'a eklenmez. Büyük `.blend` çalışma dosyaları ayrı asset arşivinde tutulur. AI üretimi varsa araç/tarih/brief ve insan düzenlemeleri kayıt altına alınır.
+Yedi PNG'nin diskteki toplamı **2.129.464 byte**; yalnızca altı fallback toplamı **551.701 byte**'dır. Bunlar tüm dosyaların toplamıdır; tek sayfa görüntülemesinde transfer edilen veya image optimizer üzerinden gönderilen byte sayısı olarak yorumlanmaz. Desktop/mobile export genişliklerinin farklılığı capture anındaki canvas içerik genişliğinden gelir.
 
-## Faz 1 kabul testi
+## Gelecekteki final ve lite hedefleri
 
-Üst kabuk bağımsız hareket ediyor; kabin içeriden görünür ve kapalı durumda sızmıyor; top-down ile side aynı gövde; model referans kamerada kadraja sığıyor; isimler `src/types/scene.ts` ile uyuşuyor; lisans kaydı tamam; desktop/lite bütçeleri ölçülmüş. Bunlar geçmeden final hero cilasına başlanmaz.
+Aşağıdaki dosyalar **henüz üretilmedi ve runtime'da istenmiyor**. Bunlar ilk plandan korunan sonraki üretim hedefleridir; mevcut prosedürel demonun teslimleri değildir.
+
+| Planlanan varlık | Olası yol | Gelecek bütçe / amaç |
+| --- | --- | --- |
+| Ana GLB | `public/models/velair-jet-v1.glb` | ≤ 3 MiB; ≤ 150k görünür üçgen; dış + kabin + yan uçuş |
+| Bağımsız lite GLB | `public/models/velair-jet-lite-v1.glb` | ≤ 1.5 MiB; ≤ 60k üçgen; düşük GPU için sadeleştirme |
+| Bulut atlası | `public/textures/cloud-atlas-v1.webp` | ≤ 400 KiB; shader örtüsü yerine/yanına katmanlı bulut ihtiyacı olursa |
+| Özel ortam dosyası | `public/textures/sky-studio-v1.hdr` | ≤ 500 KiB; `RoomEnvironment` sonrasında özel sanat yönü gerekirse |
+| Sıkıştırılmış final fallback'ler | Sürümlü WebP/AVIF yolları | Hero/yan kare ≤ 220 KiB, kabin ≤ 250 KiB; mevcut PNG'lerden kalite kontrolüyle türetilecek |
+| Lisanslı font dosyaları | `public/fonts/` | Toplam ≤ 160 KiB WOFF2; son tipografi kararı sonrasında |
+
+Sonraki asset işi: prosedürel modelin kadraj ve yüzey cilasını geliştirmek, gerekirse ayrı lite üretmek, PNG/arka plan transferlerini ölçerek optimize etmek ve değişen geometri/ışıkla altı fallback'i yeniden export etmek. GLB üretimine geçilirse üst kabuk ve kabin düğümleri, eksenler, UV/normal yönleri ve kaynak hakları korunacak; yeni dosyaların boyut/hash kayıtları bu sicile eklenecek. Satın alınmış ticari model veya harici final artwork henüz edinilmedi.

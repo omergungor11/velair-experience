@@ -1,6 +1,8 @@
 # VELAIR — Kapsamlı proje planı
 
-Tarih: 12 Eylül 2026 · Amaç: kişisel portfolyo · Durum: plan / Faz 0.
+İlk plan: 12 Eylül 2026 · Amaç: kişisel portfolyo.
+
+13 Eylül güncellemesi: Bu belge başlangıç vizyonu ve ileri üretim hedeflerini korur. Çalışan demo artık uygulanmıştır; güncel kapsam ve kanıtlar STATUS.md, gerçek mimari ARCHITECTURE.md ve MOTION.md içindedir. Demo GLB yerine özgün prosedürel geometri, perspektif yerine ortografik kamera kullanır. Mobil scroll 8.5 viewport olarak denenmiştir; gerçek cihaz optimizasyonu henüz tamamlanmamıştır.
 
 ## 1. Projenin fikri
 

@@ -2,7 +2,7 @@
 
 ## Read first
 
-Read `docs/PLAN.md`, `docs/STATUS.md`, and the relevant task in `docs/BACKLOG.md`. The current repository is Phase 0: planning and foundation, not a completed 3D experience. Distinguish implemented behavior from planned work.
+Read `docs/PLAN.md`, `docs/STATUS.md`, and the relevant task in `docs/BACKLOG.md`. The current repository contains a working 3D demo. Production art polish, adaptive LOD and real-device performance validation remain separate tasks. Distinguish implemented behavior from planned work.
 
 ## Product direction
 
@@ -32,3 +32,13 @@ Do not modify files owned by another running task or revert unrelated work. Use 
 Run `npm run check` for integration. For visual changes, verify the relevant scene on desktop and mobile and record actual evidence in `docs/STATUS.md`. Add meaningful tests for new timeline/interaction risks; do not mirror styling in unit tests. Quality review must identify viewport, steps, observed failure, affected file, and severity. Never describe a proposed metric or unrun check as a result.
 
 Return: changed files; visible behavior; commands/results; asset or performance impact; outstanding limitations; suggested next task. Keep `docs/STATUS.md` accurate and update backlog states after accepted integration.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

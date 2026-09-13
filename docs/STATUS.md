@@ -1,44 +1,49 @@
 # Durum kaydı
 
-Tarih: 12 Eylül 2026.
+Tarih: 13 Eylül 2026 · Çalışan 3D demo; Vercel yayın doğrulaması sürüyor.
 
-## Faz 0
+## Uygulanan deneyim
 
-- Proje klasörü: `velair-experience`.
-- Kapsamlı plan, motion storyboard, mimari, asset planı, backlog, QA ve Vercel runbook yazıldı.
-- Next.js tipografik başlangıç sayfası ve semantik bölüm listesi hazır.
-- Scroll chapter veri sözleşmesi, scene type sözleşmesi, iki anlamlı sınır testi hazır.
-- Beş uzman rol + ana integrator düzeni; `.codex` paralellik sınırı 3 alt agent.
-- Paket kurulumu tamamlandı; `npm run check` geçti. Son Next.js root ayarı sonrası production build tekrar geçti.
-- GitHub private repository oluşturuldu: https://github.com/omergungor11/velair-experience ; `origin` bu adrese bağlı, ana dal `main`.
-- İlk commit [`4b93f76`](https://github.com/omergungor11/velair-experience/commit/4b93f76c0188a87dcb231d7ed752511e404fb79d) main'e push edildi; yerel HEAD ve uzak main SHA eşleşmesi doğrulandı.
-- [GitHub Quality CI](https://github.com/omergungor11/velair-experience/actions/runs/34690404955) ilk commit üzerinde başarılı: temiz `npm ci` ve `npm run check`, job süresi 47s. Bu sonuç kaydı yalnızca belgeleri değiştiren takip commit'idir.
+Altı bölümlü VELAIR sayfasında tepeden jet, shader bulut geçişi, yükselip kaybolan üst kabuk ve görünür kabin, üç klavye ile seçilebilir kabin açıklaması, kapanan gövde ve panel arkasından yatay uçuş, ufka uzaklaşma ve tekrar keşfet bağlantısı çalışır.
+
+Uçak özgün prosedürel geometridir. İç/dış görünüm aynı modelin parçalarıdır. Semantik HTML server tarafında üretilir; WebGL ayrı client chunk'ta yüklenir. Tek GSAP progress değeri kamera/jet/bulutları besler. Demand renderer scroll sırasında invalidate edilir; boşta sürekli animasyon yoktur.
+
+Hareketi azalt düğmesi ve OS tercihi normal dikey statik anlatıya geçer. Hero, kabin ve yan uçuş için aynı renderer'dan alınan desktop/mobil posterler bulunur. WebGL desteği yokluğu ve context loss aynı alternatifi açar. Mod değişimi mevcut bölüme döner; tekrar açılışta kamera mevcut scroll ile eşitlenir.
 
 ## Doğrulama kanıtı
 
-| Kontrol | Sonuç |
+| Kontrol | 13 Eylül sonucu |
 | --- | --- |
-| ESLint + TypeScript | Geçti |
-| Bölüm sürekliliği ve jump/reverse sınırları | 2/2 test geçti |
-| Production build | Geçti; `/` statik prerender edildi |
-| GitHub CI / Linux temiz kurulum | Geçti, ilk commit `4b93f76` |
-| npm kurulum audit'i | 0 bilinen vulnerability raporlandı |
-| Agent TOML dosyaları | Config + 5 rol parse edildi; gerekli alanlar ve benzersiz adlar doğrulandı |
-| Yerel belge bağlantıları | Kırık bağlantı bulunmadı |
-| Chromium 1440×900 | İçerik, 6 bölüm ve journey anchor çalıştı; yatay taşma yok |
-| Chromium 390×844 ve 320×800 | Yatay taşma yok; 390px ekran görüntüsü incelendi |
-| Reduced motion emülasyonu | Tercih algılandı, CSS scroll-behavior `auto` |
-| Klavye | İlk Tab skip link'e ulaştı |
-| Browser console/page errors | Kayıt bulunmadı |
+| `npm run check` | Geçti: ESLint, TypeScript, 11 test, production build |
+| Saf motion testleri | Bölüm sınırları, overscroll/NaN, forward/reverse/jump, süreklilik, kabuk kapanmadan dönmeme, mobil viewport uyumu; 11/11 |
+| Yerel production server | Next start, 127.0.0.1:3418; hero ve açık kabin render edildi |
+| Chrome desktop 1440×900 | Hero, bulut, cutaway, yatay uçuş giriş/çıkış ve son bölüm görsel kontrolü |
+| Chrome 390×844 / 320×800 | Mobil hero/kabin kadrajları; yatay taşma yok |
+| Hareket tercihi | Canlı OS aç/kapat ve düğme ile statik/3D geçişi; mevcut bölüm korunuyor |
+| WebGL desteği yok | Test init script'i webgl context döndürmüyor; canvas yok, poster ve 6 başlık hazır, Still experience kontrolü |
+| Context loss | WEBGL_lose_context ile zorlandı; canvas kaldırıldı, statik mod ve mevcut bölüm korundu |
+| Klavye | İlk Tab skip link; kabin butonuna focus+Enter açıklamayı değiştirdi |
+| Geri scroll / replay | Açık kabinden clouds'a geri örnekleme; sona gidip tekrar başa dönüş kontrolü |
+| Console / page error | Yerel production gezintisinde yeni kayıt yok; zorlanan context kaybı ayrı senaryo |
+| Görsel boyut/hak kaydı | public/images için kaynak, byte ve SHA-256 ASSETS.md içinde |
 
-Tarayıcı kontrolü yerel production server üzerinde agent-browser ve Chrome ile yapıldı. Mobil boyutlar emülasyondur; gerçek iOS/Android testi yapılmadı. Ekran görüntüleri ignored `.artifacts/foundation-desktop.png` ve `.artifacts/foundation-mobile.png` altındadır. GitHub CI'ın uzak sonucu GitHub Actions içinde izlenir; burada yerel ölçümler kayıtlıdır.
+Tarayıcı testleri agent-browser ile Chrome üzerinde yapıldı. Mobil boyutlar emülasyondur; gerçek iOS/Android ve Safari testi yapılmadı. Bu kayıt FPS, Lighthouse veya saha Web Vitals başarısı iddia etmez. Ana render'da kapalı hero 46.016 triangle / 22 draw call; açık kabin 48.376 / 44 ölçüldü. Bunlar tüm akışın en yüksek değerleri veya mobil FPS ölçümü değildir. `?capture=1` yalnız QA için canvas progress/reveal/render sayaçlarını ve buffer capture'ı açar; normal ziyaretçide preserveDrawingBuffer kapalıdır.
 
-ESLint 9.39.5, mevcut Next ESLint pluginlerinin peer aralığı nedeniyle sabitlendi. Npm bu sürüm için destek-sonu uyarısı veriyor; ESLint 10 denemesi plugin API uyumsuzluğu üretti. Araç zinciri güncellemesinde pluginlerin ESLint 10 desteği birlikte ele alınmalı. Başlangıç lint kontrolü 9.39.5 ile başarılıdır.
+Yerel kanıt görselleri ignored `.artifacts/` altında tutulur. Raw QA kayıtları ve `.vercel/` Git'e girmez.
 
-## Açık işler
+## GitHub ve yayın
 
-Final 3D model, cutaway, clouds, GSAP sahne entegrasyonu, hotspotlar, lite/statik görseller, gerçek cihaz performans ölçümü, Vercel bağlantısı ve yayın henüz yapılmadı. Başlangıç sayfası tam ürün QA'sını temsil etmez.
+- Private repository: https://github.com/omergungor11/velair-experience ; ana dal main.
+- Faz 0 ilk commit: `4b93f76c0188a87dcb231d7ed752511e404fb79d`; [ilk CI](https://github.com/omergungor11/velair-experience/actions/runs/34690404955) geçti.
+- Vercel projesi: `ambalajcini-vercel/velair-experience`; GitHub deposu bağlandı. Next.js preset, npm ci, npm run build, Node 22.
+- Demo değişiklikleri için remote commit, CI ve READY deployment sonucu yayın sonrasında buraya işlenecek.
 
-## Agent çalışma ortamı
+## Kalan üretim işleri
 
-Makinedeki `codex` CLI komutu, kurulu paketin native binary yolu bulunamadığı için `ENOENT` veriyor. Bu global kurulum proje kapsamında değiştirilmedi. Proje rol dosyaları resmi güncel şemaya göre hazırlanır ve TOML olarak kontrol edilir; CLI üzerinden canlı özel rol dispatch'i doğrulanmış değildir. Bu Codex masaüstü oturumu araçları çalışıyor.
+Özel sanatçı modelinin değerlendirilmesi, otomatik LOD/lite profil, gerçek cihaz GPU/FPS/bellek/Web Vitals ölçümleri, %200 zoom dahil geniş erişilebilirlik matrisi, ekran kaydı ve portfolyo case study. Bu demo final fotogerçekçi uçak üretimi veya havacılık hizmeti değildir.
+
+## Agent ve araç kaydı
+
+Scene ve motion uzmanları ayrılmış dosyalarda model ve sampler geliştirdi. Entegratör UI, kamera/sahne bağlantısı, fallback, tarayıcı QA ve yayını yönetti. Quality reviewer bağımsız incelemede WebGL fallback, mobil kadraj sürekliliği, motion tercihi/aktif bölüm ve görünmeyen başlık sorunlarını buldu; düzeltmeler entegre edildi. GSAP refresh'in callback bastırması kaynak kodundan doğrulandı; explicit progress sync ile giderildi.
+
+ESLint 9.39.5 mevcut Next plugin uyumu nedeniyle sabit. ESLint 10 geçişi plugin desteğiyle birlikte ele alınmalı. Makinedeki global codex CLI native binary ENOENT durumu bu proje kapsamında değiştirilmedi; masaüstü çoklu agent araçlarıyla geliştirme yapıldı. Rol dosyaları ayrı bir CLI oturumunda dispatch edilmiş sayılmaz.

@@ -1,89 +1,119 @@
 # Teknik mimari
 
-## Mevcut ve hedef yapı
+Durum: 13 Eylül 2026 demo uygulaması. Bu belge mevcut `src/` kodunu tarif eder; ilk plandaki GLB/LOD ve kalite profili önerilerini uygulanmış özellik olarak sunmaz. Yayın ve doğrulama sonuçlarının kaynağı [STATUS.md](STATUS.md), sonraki üretim hedeflerinin kaynağı [PLAN.md](PLAN.md)'dir.
 
-Faz 0'da `src/app/`, `src/styles/tokens.css`, `src/lib/motion/chapters.ts`, `src/types/scene.ts` ve bölüm sınır testleri vardır. Aşağıdaki bileşenler planlanan uygulama yapısıdır; henüz varmış gibi import edilmez.
+## Mevcut yapı
 
 ```text
 src/
-  app/                         # Server layout, page, metadata, global CSS
+  app/
+    page.tsx                   # Server page; deneyim ve içerik bileşimi
+    layout.tsx                 # Server layout ve metadata
+    globals.css                # Sabit sahne, sticky bölümler, responsive/statik düzen
   components/
-    experience/                # ExperienceBoundary, FlightExperience, StaticJourney
-    scene/                     # FlightCanvas, JetModel, CameraRig, CloudField
-    story/                     # StorySections, ChapterNav, CabinDetails
-    ui/                        # MotionToggle, AssetStatus
+    experience/
+      FlightExperience.tsx     # Yetenek/tercih, hata sınırı, tek playhead, navigasyon
+    scene/
+      FlightCanvas.tsx         # Tek R3F canvas, SceneController, CloudVeil
+      JetModel.tsx             # Aynı jetin dışı, ayrılan üst kabuğu ve kabini
+    story/
+      StorySections.tsx        # Altı semantik bölüm; server component
+      AircraftPoster.tsx       # Desktop/mobil hero, kabin ve yan görünüm posterleri
+      CabinDetails.tsx         # Üç erişilebilir kabin seçeneği; client component
   lib/
-    motion/                    # chapters, sampleFlight, createTimeline
-    scene/                     # asset manifest, quality policy
-  styles/                      # shared design tokens
-  types/                       # shared scene contracts
-public/
-  models/                      # versioned, licensed optimized GLB
-  textures/                    # cloud atlas, environment
-  images/                      # static model renders
-  fonts/                       # licensed WOFF2
-tests/                         # pure timeline and later browser tests
+    motion/
+      chapters.ts              # Bölüm ID'leri ve progress aralıkları
+      sample-flight.ts         # Saf FlightPose örneklemesi
+      fit-flight.ts            # Viewport'a göre zoom ve mobil konum düzeltmesi
+    scene/
+      jet-geometry.ts          # Parametrik, birleştirilmiş uçak geometrisi
+  styles/tokens.css            # Tasarım tokenları
+  types/scene.ts               # İlk planın FlightState/QualityTier/node sözleşmeleri
+public/images/                 # Bulut atmosferi ve sahneden alınan uçak posterleri
+tests/                         # Bölüm, poz ve mobil kadraj sınır testleri
 ```
 
-## Veri akışı
+Ayrı `ExperienceBoundary`, `StaticJourney`, `CameraRig` veya `CloudField` dosyaları yoktur. Bu sorumluluklar mevcut deneyim, sahne ve içerik bileşenlerinde karşılanır.
+
+## Veri akışı ve client sınırı
 
 ```mermaid
 flowchart TD
-  Page[Server Page: semantik içerik] --> Boundary[Client ExperienceBoundary]
-  Page --> Content[StorySections: metin ve bağlantılar]
-  Boundary --> Capability[Hareket tercihi / WebGL / yükleme durumu]
-  Capability -->|static| Fallback[StaticJourney ve okunabilir içerik]
-  Capability -->|full veya lite| Canvas[Lazy FlightCanvas]
-  Scroll[Doğal scroll] --> Timeline[GSAP ScrollTrigger / tek playhead]
-  Timeline --> State[FlightState ref]
-  State --> Rig[CameraRig + JetModel + CloudField]
+  Page[Server page] --> Experience[FlightExperience client sınırı]
+  Page --> Content[StorySections ve AircraftPoster]
+  Content --> Experience
+  Experience --> Capability[WebGL2 desteği ve hareket tercihi]
+  Capability -->|animasyon açık| Canvas[Lazy FlightCanvas]
+  Capability -->|statik| Posters[Normal bölümler ve posterler]
+  Scroll[Doğal scroll] --> Playhead[GSAP ScrollTrigger playhead]
+  Playhead --> Progress[progress ref]
+  Progress --> Sample[sampleFlight]
+  Sample --> Fit[fitFlight]
+  Fit --> Rig[Orthographic kamera ve JetModel]
   Rig --> Canvas
-  Timeline --> Content
+  Progress --> Veil[CloudVeil shader]
+  Playhead --> DOM[CSS progress değişkeni ve aktif bölüm]
 ```
 
-`page.tsx` ve `layout.tsx` server component olarak kalır. `dynamic(..., { ssr: false })` yalnızca client boundary içinde kullanılır; server component içinde bu seçenek konmaz. Ağır WebGL paketleri server içerik katmanına taşınmaz.
+`page.tsx`, `layout.tsx` ve anlatı metinlerini taşıyan `StorySections` server component olarak kalır. Server içerik `FlightExperience` bileşenine `children` olarak verilir. `dynamic(..., { ssr: false })` yalnızca bu client sınırında kullanılır; Three.js sahnesi burada ayrı yüklenir. Kabin butonları küçük bir client bileşenidir.
 
-## Ortak sözleşmeler
+GSAP bir nesnenin `value` alanını `0 → 1` hareket ettirir. Progress ref'i, render isteği, atmosferin CSS değişkeni ve ilerleme çizgisi bu playhead'den beslenir. React'teki aktif bölüm yalnızca chapter değiştiğinde güncellenir. Kamera ve model pozu için kare başına React state kullanılmaz.
 
-`chapters.ts` bölüm ID'lerini ve aralıklarını tanımlar. DOM anchor, navigasyon ve timeline aynı ID'yi kullanır. Aralıklar sol kapalı/sağ açık; son aralık `1` değerini kapsar. `getChapterAt` overscroll'u sınırlar, NaN'i başlangıca düşürür.
+## Runtime sözleşmeleri
 
-`FlightState`: progress, chapter, kamera konumu/hedefi, jet konumu/dönüşü, shellReveal ve cloudOpacity. Bu değerler başlangıçta tip sözleşmesidir. Uygulama sırasında `useRef` üzerinden frame bazında okunur; 60 kez/saniye React setState yapılmaz. Bölüm ID'si değiştiğinde navigasyona seyrek state güncellemesi yapılabilir.
+[`chapters.ts`](../src/lib/motion/chapters.ts) altı anchor ID'sini ve normalize aralıklarını tanımlar. Aralıklar `[start, end)` biçimindedir; son aralık `1` değerini kapsar. `getChapterAt` overscroll'u sınırlar, NaN'i başlangıca düşürür. CSS bölüm yüksekliklerinin oranları bu aralıklarla eşleşir; iki yer birlikte güncellenmelidir.
 
-Koordinatlar metre: Y yukarı, jet burnu yerel -Z, kanatlar X doğrultusunda. Model kökü `(0,0,0)` kütle merkezine yakın sabit pivot. İçe aktarma dönüşümü `JetRoot` altında bir kez uygulanır. Bileşenler arasında piksel, metre ve derece/radyan karıştırılmaz; runtime açılar radyandır.
+[`sampleFlight`](../src/lib/motion/sample-flight.ts) şu `FlightPose` alanlarını döndürür:
 
-Entegratör bu iki ortak sözleşmenin tek yazarıdır. Uzmanlar değişiklik önerisini bekleyen bağımlılık olarak bildirir.
+| Alan | Runtime anlamı |
+| --- | --- |
+| `jetPosition` | Dünya konumu `[x, y, z]` |
+| `jetRotation` | Radyan cinsinden Euler XYZ açıları |
+| `cameraPosition`, `cameraTarget` | Orthographic kameranın konumu ve bakış hedefi |
+| `zoom` | 900 CSS piksel viewport yüksekliği için temel zoom |
+| `reveal` | Üst kabuk açılımı: kapalı `0`, açık `1` |
+| `cloud` | Örneklenen normalize bulut zarfı; demo CloudVeil bunu kullanmaz |
 
-## 3D sahne
+Sampler geçmiş karelerden bağımsızdır. Keyframe'ler arasında pozlar, açılar ve skalerler `t²(3−2t)` smoothstep ağırlığıyla hesaplanır. Açı dizisinde sarma sıçraması yoktur; sahne `rotation.set` ile Euler açılarını uygular. Quaternion slerp veya Catmull-Rom yolu bu demoda kullanılmaz.
 
-Tek canvas ve tek kalıcı kamera rig'i. Uçak GLB cache'den bir kez yüklenir. Dış gövde ve kabin ayrı model değiştirilerek değil aynı scene graph üzerinde reveal edilir. Sık tekrarlanan koltuklar gerekiyorsa instancing kullanır. Materyal/vektör frame içinde yeniden oluşturulmaz.
+[`fitFlight`](../src/lib/motion/fit-flight.ts) zoom'u `height / 900` ile ölçekler. Genişlik `760px` altındaysa erken bölümde kanatların kadraja sığması için zoom'u sınırlar; kabine yaklaşırken sınırı yumuşakça değiştirir ve modeli Z doğrultusunda metnin altına taşır. Yan uçuşa geçişte bu ek düzeltmeler `.60–.76` boyunca sonlanır. Kaynak poz mutasyona uğramaz.
 
-Bulutlar shader ile karmaşık hacimsel raymarching yerine az sayıda katmanlı alpha plane olabilir. Transparan overdraw ve sorting ölçülür; `depthWrite` kararı hedef görüntüde doğrulanır. HDR environment küçük çözünürlükte; ağır gölge ve post-processing ilk sürümün şartı değildir.
+Koordinatlar Y yukarı, burun yerel `−Z`, kanatlar X doğrultusudur. Jet yaklaşık 14 birim uzunluk ve açıklığa sahip bir konsept modeldir; bunlar gerçek bir hava aracına ait teknik özellik iddiası değildir. Plan görünümünde kameranın Z bileşeni `.01` olarak korunur; bakış yönünün dünya up ekseniyle tam çakışması önlenir.
 
-`frameloop="demand"` kullanıldığında GSAP güncellemesi ve sönümlenme süresi boyunca `invalidate()` gereklidir. Aksi takdirde mutasyonlar ekrana yansımaz. Görünür sürekli hareket gerekirse yalnızca ilgili aralıkta render döngüsü açılır. `visibilitychange`, unmount ve context loss kaynak temizliğine dahil edilir.
+`src/types/scene.ts` içindeki `FlightState` ve `QualityTier` ilk plan sözleşmeleri olarak durur. Mevcut render akışı `FlightPose` ve ayrı progress/reveal ref'leriyle çalışır; `full/lite/static` enum'u runtime kalite seçicisine bağlı değildir.
 
-## Progressive enhancement
+## Geometri, materyal ve atmosfer
 
-1. HTML başlıklar ve içerik ilk yanıtta hazırdır.
-2. Statik hero karesi ayrılmış boyutla görünür; LCP adayını oluşturur.
-3. Motion tercihi ve WebGL desteği okunur. SSR ile çelişen markup üretilmez.
-4. Uygun profilde JS ve GLB lazy yüklenir. İlk 3D frame mevcut progress'te hazırlanır.
-5. Poster → canvas kısa opacity geçişiyle değişir; içerik ölçüsü aynı kalır.
-6. Hata/context loss durumunda poster/StaticJourney korunur, normal scroll devam eder.
+Uçak dışarıdan indirilen GLB yerine [`createJetGeometries`](../src/lib/scene/jet-geometry.ts) ile tarayıcıda üretilir. Gövde, kanatlar, T kuyruk, motorlar, camlar, oturma alanı, masa ve özel dinlenme alanı parametrik geometridir. Parçalar ad/materyal grubuna göre `mergeGeometries` ile birleştirilir; ayrı koltuk instancing sistemi yoktur.
 
-Error boundary React yükleme/render hatalarını, canvas context olayları GPU kaybını yönetir. Model bekleme zaman aşımı fallback gösterir; kullanıcı sonsuz loading döngüsünde kalmaz. Hataları gizleyen boş catch kullanılmaz.
+`JetModel` aynı `JetRoot` altında dış gövdeyi, `FuselageUpper` grubunu ve `CabinInterior` grubunu tutar. `reveal` arttıkça üst kabuk hafif yana/yukarı taşınır, küçük bir açıyla ayrılır ve opaklığı azalır. Tam açılımda üst grup gizlenir; kabin aynı alt gövde içinde görünür kalır. Kapanış aynı işlemin tersidir. İkinci bir uçak veya bağımsız iç mekân modeline geçilmez.
 
-## Kalite profilleri
+Materyaller kurulumda oluşturulur. Ahşap çizgileri dahil yüzey detaylarının çoğu geometridir; uçak için harici doku indirilmez. Yansıma ortamı `RoomEnvironment` ve `PMREMGenerator` ile üretilir. Dış HDR dosyası ve post-processing zinciri yoktur. Geometri, materyaller ve ortam render target'ı unmount sırasında dispose edilir.
 
-`full`: ana GLB, DPR üst sınırı 1.5, sınırlı cloud katmanı. `lite`: LOD, daha küçük doku, daha az cloud, düşük DPR. `static`: WebGL yüklemeden normal içerik. Dar viewport tek başına zayıf GPU kabul edilmez; başlangıç ihtiyatlı seçilir, ölçülen performans ve açık kullanıcı tercihiyle uyarlanır. Profil sürekli gidip gelmesin diye hysteresis kullanılır.
+Atmosfer iki parçadır: DOM'daki `cloud-atmosphere.png` küçük bir CSS kayma/ölçek değişimi alır; kameraya dönük tek shader düzlemi `.15–.41` aralığında uçağın önünden geçen bulut örtüsünü verir. Shader kendi sinüs-kare opacity zarfını ve noise desenini progress'ten hesaplar. Sampler'ın `cloud` alanı bu aşamada yalnızca sözleşmede durur. Üç ayrı derinlik katmanı veya hacimsel bulut simülasyonu uygulanmamıştır.
 
-## Paket ve state kararları
+## Render ve kaynak yaşam döngüsü
 
-GSAP tüm scroll koreografisinin sahibidir. R3F scene graph ve render lifecycle sahibidir. CSS statik layout sahibidir. İlk sürümde global state kütüphanesi, backend, API route ve environment secret gerekmiyor. Lenis opsiyoneldir; eklenirse GSAP ticker ile tek clock, teardown ve reduced-motion davranışı belgelenir.
+Tek `Canvas`, orthographic kamera ve `frameloop="demand"` kullanılır. DPR aralığı `1–1.5` ile sınırlıdır. Scroll güncellemesi `invalidate()` çağırır; sürekli boşta uçak salınımı veya ikinci animasyon saati yoktur. `SceneController` kamera/jet pozunu `useFrame(..., -2)`, `JetModel` kabuğu `useFrame(..., -1)` içinde uygular. Ölçüler R3F `size` verisinden gelir; 3D render callback'lerinde DOM layout ölçülmez.
 
-İlk kurulum: Next 16.3.5, React/DOM 19.2.8, Fiber 9.7.0, Drei 10.7.8, Three 0.186.0, GSAP 3.15.0. Sürüm yükseltmeleri peer dependency aralığı ve build ile birlikte değerlendirilir; `--force` / `--legacy-peer-deps` uyumsuzluğu gizlemek için kullanılmaz.
+Belge gizliyken scroll kaynaklı render isteği gönderilmez; görünür olduğunda sahne invalidate edilir. `webglcontextlost` statik moda geçirir. `SceneBoundary` React sahne hatasını kaydeder ve aynı fallback'i etkinleştirir. GSAP kurulumu `useGSAP` context'ine bağlıdır; `revertOnUpdate` mod değişiminde kaynakları kaldırır. Fontlar hazır olduğunda ve kurulumdan kısa süre sonra ScrollTrigger ölçümleri yenilenir. `FlightExperience`, `fromTo` ile başlangıç değerini açıkça sıfırlar; `onRefresh` ve kurulum refresh'i mevcut scroll progress'ini `applyProgress` yoluyla ref, DOM ve navigasyona uygular. Böylece refresh sırasında tween callback'inin bastırılması ortadan yüklenen sahneyi başlangıç pozunda bırakmaz.
 
-## Build ve deployment sınırı
+## Statik deneyim ve etkileşim
 
-Vercel Next.js preset kullanılır; static export veya ayrı WebGL server gerekmez. GLB public dosyaları CDN'den sunulur; cache için içerik sürümü taşıyan adlar kullanılır. Sürümlenmemiş tüm public yollarına genel immutable header uygulanmaz. `.vercel/`, env dosyaları, ham Blender sahneleri ve QA videoları ilk repository'ye girmez.
+İlk HTML normal bölüm akışı ve poster markup'ıyla gelir. Client mount, WebGL2 desteği ve hareket tercihi okunduktan sonra uygun koşulda canvas yüklenir. Canvas kurulumunu izleyen animation frame callback'i `scene-ready` durumunu açar; hero posteri gizlenir ve canvas CSS opacity geçişiyle görünür. Bu callback görsel kalite ölçümü değildir; yükleme/poster hizalaması tarayıcı QA'sında kontrol edilir.
 
-Referans: [R3F on-demand render ve invalidate](https://r3f.docs.pmnd.rs/advanced/scaling-performance). Runtime tercihlerinin geri kalanı bu projenin mimari kararlarıdır.
+OS'nin azaltılmış hareket tercihi varsayılan olarak izlenir. Kullanıcı düğmeyle animasyonu açıp kapatabilir. Statik modda canvas unmount edilir, scrub durur, sticky içerikler normal dikey bölümlere dönüşür ve `AircraftPoster` hero/kabin/yan görünüm resimlerini seçer. WebGL2 kullanılamadığında veya sahne hata verdiğinde aynı okunabilir akış kullanılır. Ayrı `StaticJourney` bileşeni ve model indirme zaman aşımı yoktur.
+
+Mod değişirken o anda görülen chapter saklanır ve yeni düzende aynı bölümün başlangıcına hizalanır; tam piksel konumu korunmaz. Statik navigasyon, scroll/resize olaylarında `requestAnimationFrame` ile sınırlandırılmış DOM ölçümü yapar. `CabinDetails` üç gerçek buton, `aria-pressed`, ortak açıklama alanı ve seçim değişiminde `aria-live="polite"` kullanır. Bunlar 3D yüzeye projekte edilmiş hotspotlar değildir.
+
+## DOM katmanları ve yatay uçuş
+
+`scene-shell` viewport'a sabitlenir, `z-index: 0` taşır ve pointer olaylarını almaz. Anlatı `z-index: 10`, navigasyon/hareket kontrolü `30`, skip link `60` katmanındadır. Deneyim kökü kendi stacking context'ini oluşturur. Bölümlerin içeriği CSS sticky ile tutulur; GSAP pin kullanılmaz.
+
+Horizon bölümündeki opak `flyby-card`, animasyon modunda viewport ortasında sabit durur. Jet `.76–.90` aralığında soldan sağa ilerlerken canvas üzerindeki DOM panel tarafından doğal olarak örtülür. Canvas z-index'i değiştirilmez. Mobilde kart aşağıda, uçuş yolu yukarıda konumlanır. Statik modda yan görünüm posteri ve panel normal akıştadır.
+
+## Üretim cilası ve yayın sınırı
+
+Demo aynı parametrik modeli tüm animasyonlu cihazlarda kullanır. GLB export/edinim, gerçek LOD, performansa göre adaptif kalite, ticari model lisansı değerlendirmesi ve ölçülmüş cihaz bütçeleri sonraki çalışma konularıdır. İlk plandaki performans sayıları ölçülmüş demo sonucu sayılmaz. Gerçek iOS/Android, context loss, tercih değişimi, deep reload ve yayın URL'si kontrollerinin sonuçları çalıştırıldıktan sonra `STATUS.md` içine kaydedilir.
+
+Next.js App Router ve Vercel Next.js preset hedefi korunur. Backend, API route, rezervasyon formu veya gizli API anahtarı yoktur. Paket sürümlerinin kaynağı `package.json` ve kilit dosyasıdır. Vercel bağlantısı, deploy durumu ve gerçek URL [DEPLOYMENT.md](DEPLOYMENT.md) ve durum kaydında takip edilir.

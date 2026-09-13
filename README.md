@@ -2,7 +2,9 @@
 
 Özel jetler üzerine, scroll ile ilerleyen bir 3D portfolyo deneyimi. VELAIR bu proje için seçilmiş bir çalışma adıdır; marka uygunluğu araştırılmış değildir.
 
-**Durum: Faz 0 / plan ve proje temeli.** Bu commit tipografik başlangıç sayfasını, uyumlu bağımlılıkları, sahne sözleşmelerini, kalite kontrollerini ve agent yapılandırmasını içerir. 3D uçak, bulutlar, kabin açılımı ve scroll animasyonları henüz uygulanmadı. Vercel yapılandırması hazır; uzak proje bağlantısı ve yayın henüz yapılmadı.
+**Durum: çalışan 3D demo.** Tepeden jet görünümü, bulut geçişi, açılan kabin, üç kabin açıklaması, panel arkasından yatay uçuş ve kapanış tek scroll akışında çalışır. Mobil kadraj, hareketi azalt seçeneği ve WebGL kullanılamadığında aynı modelden üretilen statik görseller bulunur. Yayın ve test kanıtları [durum kaydında](docs/STATUS.md) tutulur.
+
+Uçak bu proje için kodla üretilen özgün bir konsept modeldir; bir üreticinin sertifikalı yerleşimini temsil etmez. Sonraki kalite turu gerçek cihaz ölçümleri, özel model/LOD ve portfolyo case study çalışmasını kapsar.
 
 ## Başlangıç
 
@@ -19,7 +21,7 @@ Yerel adres: http://localhost:3000
 npm run check
 ```
 
-Lint, TypeScript, scroll bölüm sınırı testleri ve production build çalışır. Next.js type dosyaları `dev`, `build` veya `typecheck` sırasında oluşur.
+Lint, TypeScript, bölüm/pose/mobil kadraj için 11 test ve production build çalışır. Next.js type dosyaları `dev`, `build` veya `typecheck` sırasında oluşur.
 
 ## Proje belgeleri
 
@@ -35,14 +37,12 @@ Lint, TypeScript, scroll bölüm sınırı testleri ve production build çalış
 
 ## Stack
 
-Next.js App Router, React, TypeScript, Three.js, React Three Fiber, Drei, GSAP/ScrollTrigger, CSS tokenları, GitHub Actions, Vercel. Paketler tam sürüme sabittir; `package-lock.json` kaynak kabul edilir. React 19.2.8, Fiber 9.7.0'ın `>=19 <19.3` peer aralığına göre seçildi. Lenis ilk sürümde eklenmedi; doğal scroll temel davranış olacak.
+Next.js App Router, React, TypeScript, Three.js, React Three Fiber, Drei, GSAP/ScrollTrigger, CSS tokenları, GitHub Actions, Vercel. Paketler tam sürüme sabittir; `package-lock.json` kaynak kabul edilir. React 19.2.8, Fiber 9.7.0'ın `>=19 <19.3` peer aralığına göre seçildi. Lenis eklenmedi; doğal scroll kullanılır.
 
 ## Agent kullanımı
 
 Bu klasörü proje kökü olarak açın. Önce [AGENTS.md](AGENTS.md), sonra görevle ilgili belge okunur. `.codex/agents/` altında beş uzman rol bulunur; ana agent entegrasyonu yürütür. Dosyalar kendiliğinden iş başlatmaz. Model ve düşünme ayarları ana oturumdan devralınır.
 
-Örnek sonraki geliştirme talimatı:
+Geliştirme sırasında scene_engineer ve motion_engineer ayrılmış dosyalarda çalıştı; quality_reviewer bağımsız inceleme yaptı. Entegratör arayüzü, fallback akışını, testleri ve yayını birleştirdi. Görevlerin kabul durumları [backlog](docs/BACKLOG.md) içinde.
 
-> VELAIR Faz 1'i başlat. creative_director ile görsel yön ve asset briefini, scene_engineer ile dış gövde/kabin teknik provasını paralel yürüt. Motion ve arayüz entegrasyonunu ortak sözleşmeleri doğruladıktan sonra yap. docs/BACKLOG.md kabul kriterleriyle sonucu doğrula.
-
-Üç boyutlu model ve diğer görsel dosyalar edinildiğinde [asset kayıt tablosuna](docs/ASSETS.md) kaynak ve kullanım koşulları eklenir. Gerçek uçuş rezervasyonu, ödeme veya operasyon hizmeti yoktur.
+Görsellerin kaynağı ve dosya boyutları [asset kaydında](docs/ASSETS.md) bulunur. Gerçek uçuş rezervasyonu, ödeme veya operasyon hizmeti yoktur.
