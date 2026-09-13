@@ -16,8 +16,8 @@ Durumlar: Hazır = kapsamı belli, başlanmadı. Bağımlı = ön koşulu var. D
 | VEL-09 | 3 | Horizon ve kapanış | Interface + Motion ayrı yollar | VEL-08 | Sayfa sonu ve tekrar keşfet erişilebilir | Tamam |
 | VEL-10 | 4 | Lite profil ve statik motion modu | Scene + Integrator | VEL-09 | Tercih değişimi, model hatası/context loss testleri | Kısmen |
 | VEL-11 | 4 | Browser, erişilebilirlik, performans QA | Quality | VEL-10 | QA matrisi, ölçümler, engelleyici hata yok | Kısmen |
-| VEL-12 | 5 | Vercel Git bağlantısı ve preview | Integrator | VEL-11 | Doğru repo/branch, READY URL, URL'de kontroller | Doğrulanıyor |
-| VEL-13 | 5 | Production ve portfolyo sunumu | Integrator | VEL-12 | Canlı URL, kayıtlar, case study, gerçek ölçümler | Bağımlı |
+| VEL-12 | 5 | Vercel Git bağlantısı ve demo yayını | Integrator | VEL-11 demo QA | Doğru repo/branch, READY URL, URL'de kontroller | Tamam |
+| VEL-13 | 5 | Production ve portfolyo sunumu | Integrator | VEL-12 | Canlı URL, kayıtlar, case study, gerçek ölçümler | Kısmen |
 
 Takvim tahmini PLAN.md'dedir. Eşzamanlı işler dosya sınırlarıyla atanır; bir hücrede iki rol olması aynı dosyaya eşzamanlı yazma izni değildir. Task tamamlandığında commit ve kanıt `STATUS.md` içine eklenir. Bu liste GitHub issue açıldığı anlamına gelmez.
 
@@ -26,3 +26,5 @@ Takvim tahmini PLAN.md'dedir. Eşzamanlı işler dosya sınırlarıyla atanır; 
 VEL-01/02, sistem fontları ve bu proje için üretilmiş prosedürel jetle kabul edildi; satın alınmış final model yok. VEL-07 üç DOM butonuyla kabin açıklamaları sunar; model üzerinde mekânsal hotspot işaretleyicileri ayrı cilalama işidir. VEL-10 için statik mod, WebGL yokluğu ve context-loss geçişi çalışır; otomatik LOD/lite seçimi açık. VEL-11 için Chrome masaüstü/mobil emülasyon ve 11 saf test geçti; gerçek iOS/Android, FPS, Web Vitals saha ölçümü ve kapsamlı erişilebilirlik incelemesi açık.
 
 Sonraki kapsam: gerçek cihaz QA → geometri/LOD ve materyal cilası → portfolyo ekran kaydı/case study. Demo yayını final üretim hedeflerinin tamamlandığı anlamına gelmez.
+
+14 Eylül: Vercel production demo READY ve canlı URL kontrol edildi. VEL-13 için yayın tamam; portfolyo kaydı/case study ve gerçek cihaz metrikleri açık.

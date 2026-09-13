@@ -1,6 +1,8 @@
 # Durum kaydı
 
-Tarih: 13 Eylül 2026 · Çalışan 3D demo; Vercel yayın doğrulaması sürüyor.
+Tarih: 14 Eylül 2026 · 3D demo Vercel production ortamında READY.
+
+Canlı demo: **https://velair-experience.vercel.app**
 
 ## Uygulanan deneyim
 
@@ -12,7 +14,7 @@ Hareketi azalt düğmesi ve OS tercihi normal dikey statik anlatıya geçer. Her
 
 ## Doğrulama kanıtı
 
-| Kontrol | 13 Eylül sonucu |
+| Kontrol | 13–14 Eylül sonucu |
 | --- | --- |
 | `npm run check` | Geçti: ESLint, TypeScript, 11 test, production build |
 | Saf motion testleri | Bölüm sınırları, overscroll/NaN, forward/reverse/jump, süreklilik, kabuk kapanmadan dönmeme, mobil viewport uyumu; 11/11 |
@@ -24,7 +26,7 @@ Hareketi azalt düğmesi ve OS tercihi normal dikey statik anlatıya geçer. Her
 | Context loss | WEBGL_lose_context ile zorlandı; canvas kaldırıldı, statik mod ve mevcut bölüm korundu |
 | Klavye | İlk Tab skip link; kabin butonuna focus+Enter açıklamayı değiştirdi |
 | Geri scroll / replay | Açık kabinden clouds'a geri örnekleme; sona gidip tekrar başa dönüş kontrolü |
-| Console / page error | Yerel production gezintisinde yeni kayıt yok; zorlanan context kaybı ayrı senaryo |
+| Console / page error | Canlı sitede page error veya console.error yok; Three.Clock kullanım dışı uyarısı ve canvas temizliğinde Context Lost bilgi logu görüldü |
 | Görsel boyut/hak kaydı | public/images için kaynak, byte ve SHA-256 ASSETS.md içinde |
 
 Tarayıcı testleri agent-browser ile Chrome üzerinde yapıldı. Mobil boyutlar emülasyondur; gerçek iOS/Android ve Safari testi yapılmadı. Bu kayıt FPS, Lighthouse veya saha Web Vitals başarısı iddia etmez. Ana render'da kapalı hero 46.016 triangle / 22 draw call; açık kabin 48.376 / 44 ölçüldü. Bunlar tüm akışın en yüksek değerleri veya mobil FPS ölçümü değildir. `?capture=1` yalnız QA için canvas progress/reveal/render sayaçlarını ve buffer capture'ı açar; normal ziyaretçide preserveDrawingBuffer kapalıdır.
@@ -36,7 +38,13 @@ Yerel kanıt görselleri ignored `.artifacts/` altında tutulur. Raw QA kayıtla
 - Private repository: https://github.com/omergungor11/velair-experience ; ana dal main.
 - Faz 0 ilk commit: `4b93f76c0188a87dcb231d7ed752511e404fb79d`; [ilk CI](https://github.com/omergungor11/velair-experience/actions/runs/34690404955) geçti.
 - Vercel projesi: `ambalajcini-vercel/velair-experience`; GitHub deposu bağlandı. Next.js preset, npm ci, npm run build, Node 22.
-- Demo değişiklikleri için remote commit, CI ve READY deployment sonucu yayın sonrasında buraya işlenecek.
+- Demo kodu: [`30d068a`](https://github.com/omergungor11/velair-experience/commit/30d068a93284ad2af290f98e327f00aa62a54f20). GitHub main SHA eşleşmesi doğrulandı.
+- [Demo Quality CI](https://github.com/omergungor11/velair-experience/actions/runs/34786395292): başarılı; Linux üzerinde temiz npm ci + npm run check, job 42 saniye.
+- Vercel Git entegrasyonu bu push için production build başlattı. Deployment: `dpl_5SgVbYifcKGNt5sm8tqqrTmqTTqk`, durum READY, build 26 saniye, oluşturulma 14 Eylül 2026 01:18:22 Europe/Istanbul.
+- Sabit adres: https://velair-experience.vercel.app ; [bu build'in adresi](https://velair-experience-cvqr4mn8k-ambalajcini-vercel.vercel.app).
+- Canlı adrese anonim HTTP GET 200 döndü; altı semantik bölüm var. Chrome 1440×900 hero/açık kabin ve 390×844 motion toggle kontrolü geçti; mobilde taşma yok, tekrar etkinleştirme cabin progress .3400 / cabin göstergesini koruyor. Statik yan görünüm ve WebGL yokluğu da canlı adreste doğrulandı.
+- `vercel logs dpl_5SgVbYifcKGNt5sm8tqqrTmqTTqk --no-follow --level error --since 1h --limit 20`: taranan aralıkta error log bulunmadı. Kalıcı monitoring/drain bu demo kapsamında kurulmadı.
+- Bu yayın sonucunu kaydeden takip commit'i yalnızca belge değiştirir; test edilmiş uygulama kodu yukarıdaki demo commit'idir.
 
 ## Kalan üretim işleri
 

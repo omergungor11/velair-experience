@@ -1,13 +1,13 @@
 # Vercel yayın planı
 
-**Şimdiki durum:** `vercel.json` ve GitHub kalite workflow'u hazırdır. Vercel projesi oluşturulmadı, repository Vercel'e bağlanmadı, preview veya production yayınlanmadı. Yayın Faz 5 teslimidir.
+**Şimdiki durum:** `ambalajcini-vercel/velair-experience` oluşturuldu, GitHub main bağlandı ve demo production ortamında READY. Canlı adres: [velair-experience.vercel.app](https://velair-experience.vercel.app). Commit, CI ve deployment kanıtları [STATUS.md](STATUS.md) içinde. Aşağıdaki akış sonraki sürümler için runbook'tur.
 
 ## Proje ayarları
 
 | Ayar | Değer |
 | --- | --- |
 | Repository | `omergungor11/velair-experience` |
-| Project adı önerisi | `velair-experience` (uygunluk bağlantıda kontrol edilir) |
+| Project / team | `velair-experience` / `ambalajcini-vercel` |
 | Framework | Next.js |
 | Root Directory | Repository kökü `.` |
 | Node | 22.x |
@@ -46,7 +46,7 @@ CI için Vercel token'ı eklemek bu projenin başlangıç yolu değildir; Git in
 
 ## Yayın öncesi
 
-`npm ci` ve `npm run check` temiz ortamda geçmeli. Asset yolları, büyük harf/küçük harf Linux uyumu ve GLB decoder dosyaları doğrulanmalı. Gerçek canonical URL belli olduğunda metadataBase/canonical eklenmeli; starter'ın `robots: noindex` ayarı yalnızca production sunuma hazırken kaldırılmalı. Preview indexing davranışı platformda ayrıca kontrol edilmeli. Alan adı satın alma veya DNS değişimi bu plan kapsamında yapılmaz.
+`npm ci` ve `npm run check` temiz ortamda geçmeli. Asset yolları, büyük harf/küçük harf Linux uyumu ve varsa GLB decoder dosyaları doğrulanmalı. Mevcut demo GLB yüklemez. Gerçek canonical URL belli olduğunda metadataBase/canonical eklenmeli; starter'ın `robots: noindex` ayarı yalnızca production sunuma hazırken kaldırılmalı. Preview indexing davranışı platformda ayrıca kontrol edilmeli. Demo için noindex korunur; final portfolyo lansmanında tekrar değerlendirilir. Alan adı satın alma veya DNS değişimi bu plan kapsamında yapılmaz.
 
 ## Yayın sonrası ve geri dönüş
 

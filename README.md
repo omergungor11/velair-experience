@@ -2,7 +2,9 @@
 
 Özel jetler üzerine, scroll ile ilerleyen bir 3D portfolyo deneyimi. VELAIR bu proje için seçilmiş bir çalışma adıdır; marka uygunluğu araştırılmış değildir.
 
-**Durum: çalışan 3D demo.** Tepeden jet görünümü, bulut geçişi, açılan kabin, üç kabin açıklaması, panel arkasından yatay uçuş ve kapanış tek scroll akışında çalışır. Mobil kadraj, hareketi azalt seçeneği ve WebGL kullanılamadığında aynı modelden üretilen statik görseller bulunur. Yayın ve test kanıtları [durum kaydında](docs/STATUS.md) tutulur.
+**[Canlı demo → velair-experience.vercel.app](https://velair-experience.vercel.app)**
+
+**Durum: yayınlanmış 3D demo.** Tepeden jet görünümü, bulut geçişi, açılan kabin, üç kabin açıklaması, panel arkasından yatay uçuş ve kapanış tek scroll akışında çalışır. Mobil kadraj, hareketi azalt seçeneği ve WebGL kullanılamadığında aynı modelden üretilen statik görseller bulunur. Yayın ve test kanıtları [durum kaydında](docs/STATUS.md) tutulur.
 
 Uçak bu proje için kodla üretilen özgün bir konsept modeldir; bir üreticinin sertifikalı yerleşimini temsil etmez. Sonraki kalite turu gerçek cihaz ölçümleri, özel model/LOD ve portfolyo case study çalışmasını kapsar.
 
