@@ -16,6 +16,10 @@ Only the integrator edits shared contracts (`src/types/`, `src/lib/motion/chapte
 
 Do not modify files owned by another running task or revert unrelated work. Use separate worktrees if branches are needed; never switch a shared checkout underneath another worker. The integrator handles integration commits, GitHub pushes, and deployment within the user's authorization. Specialists return scoped changes and evidence, not independent production releases.
 
+## Deployment account
+
+The user explicitly selected `pitonworks-projects` for VELAIR on 14 September 2026. Deploy only to `pitonworks-projects/velair-experience`. The cached CLI login `ambalajcini-1135` / `ambalajcini-vercel` is the wrong account for this project. Before any Vercel mutation, verify access to the exact target scope and its linked project. Never infer authorization from whichever CLI login happens to be active, auto-link into a different team, or recreate this project in the old team. If CLI access is missing, use the user's authenticated Vercel browser session or complete the correct account login.
+
 ## Engineering rules
 
 - Node 22 and npm; keep the exact-version `package-lock.json`. Do not bypass peer dependency conflicts.

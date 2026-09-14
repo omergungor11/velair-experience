@@ -1,13 +1,13 @@
 # Vercel yayın planı
 
-**Şimdiki durum:** `ambalajcini-vercel/velair-experience` oluşturuldu, GitHub main bağlandı ve demo production ortamında READY. Canlı adres: [velair-experience.vercel.app](https://velair-experience.vercel.app). Commit, CI ve deployment kanıtları [STATUS.md](STATUS.md) içinde. Aşağıdaki akış sonraki sürümler için runbook'tur.
+**Şimdiki durum:** Kullanıcının belirttiği doğru hedef **`pitonworks-projects/velair-experience`**. 14 Eylül 2026'da ilk yayının yanlış `ambalajcini-vercel` hesabında olduğu düzeltildi; kullanıcı devir işlemini tamamladığını doğruladı. [Proje paneli](https://vercel.com/pitonworks-projects/velair-experience) tarayıcıda görüldü. [Canlı adres](https://velair-experience.vercel.app) devir sonrasında HTTP 200 döndü. Önceki hesaba ait yerel `.vercel/project.json` kaldırıldı. Tarihsel build kanıtları [STATUS.md](STATUS.md) içindedir.
 
 ## Proje ayarları
 
 | Ayar | Değer |
 | --- | --- |
 | Repository | `omergungor11/velair-experience` |
-| Project / team | `velair-experience` / `ambalajcini-vercel` |
+| Project / team | `velair-experience` / `pitonworks-projects` |
 | Framework | Next.js |
 | Root Directory | Repository kökü `.` |
 | Node | 22.x |
@@ -19,7 +19,7 @@
 
 ## GitHub entegrasyonu
 
-1. Doğru Vercel hesabı/team'i mevcut bağlantıdan doğrula.
+1. `vercel whoami` ve `vercel teams ls` ile **pitonworks-projects** erişimini doğrula. Mevcut global CLI oturumu ambalajcini-1135 olabilir; bu proje için kullanma. Gerekirse kullanıcının doğru tarayıcı oturumuyla çalış.
 2. GitHub integration'a sadece bu repository erişimini vererek import et; aynı isimde proje varsa önce mevcut bağlantıyı incele.
 3. Yukarıdaki ayarları doğrula. İlk importun production build başlatabileceğini hesaba kat; bu işlem bitmiş ürün yayın fazında yapılır.
 4. Feature branch/PR push'u ile preview oluştur. İlgili commit SHA, deployment URL ve build sonucunu eşleştir.
@@ -35,8 +35,8 @@ Vercel Git integration PR/feature branch preview'ları sunar. CI ve Vercel build
 Platformda Git import kullanılamıyorsa, hazır ürünün kökünden mevcut auth ile:
 
 ```bash
-vercel link
-vercel deploy
+vercel link --project velair-experience --scope pitonworks-projects
+vercel deploy --scope pitonworks-projects
 vercel inspect <gercek-preview-url>
 ```
 

@@ -4,6 +4,12 @@ Tarih: 14 Eylül 2026 · 3D demo Vercel production ortamında READY.
 
 Canlı demo: **https://velair-experience.vercel.app**
 
+## Hesap düzeltmesi — 14 Eylül 2026
+
+İlk yayın yanlışlıkla CLI'da açık olan `ambalajcini-1135` hesabının `ambalajcini-vercel` çalışma alanına yapıldı. Kullanıcı doğru hedefi `omergungor99` hesabı ve **pitonworks-projects** paneli olarak belirtti. Açık Chrome oturumunda `pitonworks-projects/velair-experience` proje paneli görüldü ve kullanıcı devir işlemini tamamladığını doğruladı. Canlı URL değişmedi; devir sonrası anonim HTTP kontrolü 200 döndü.
+
+Eski hesaba ait yerel Vercel bağlantısı kaldırıldı. AGENTS.md ve DEPLOYMENT.md yalnız **pitonworks-projects** hedefini kullanacak şekilde güncellendi. Aşağıdaki ilk deployment kimlikleri ve eski scope, önceki yayının tarihsel kanıtıdır; güncel yayın hedefi değildir. Tarayıcıdaki Git yeniden bağlantısı yüklenirken görüldü; sonraki push için yeni scope'taki Vercel commit durumu ayrıca kontrol edilmelidir.
+
 ## Uygulanan deneyim
 
 Altı bölümlü VELAIR sayfasında tepeden jet, shader bulut geçişi, yükselip kaybolan üst kabuk ve görünür kabin, üç klavye ile seçilebilir kabin açıklaması, kapanan gövde ve panel arkasından yatay uçuş, ufka uzaklaşma ve tekrar keşfet bağlantısı çalışır.
